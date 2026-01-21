@@ -11,6 +11,7 @@ from app.core.config import settings
 # Import all models to ensure they're registered with SQLModel
 from app.models import ChatSession, Message, User  # noqa: F401
 
+
 # this is the Alembic Config object
 config = context.config
 

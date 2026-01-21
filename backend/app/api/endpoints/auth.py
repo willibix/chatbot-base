@@ -10,6 +10,7 @@ from app.db.session import get_session
 from app.models.user import User, UserCreate, UserLogin, UserRead
 from app.services.auth import AuthService
 
+
 router = APIRouter()
 
 

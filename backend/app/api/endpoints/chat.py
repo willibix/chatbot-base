@@ -19,6 +19,7 @@ from app.models.chat import (
 from app.models.user import User
 from app.services.chat import ChatService
 
+
 router = APIRouter()
 
 

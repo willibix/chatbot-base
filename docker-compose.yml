@@ -26,6 +26,8 @@ services:
       - chatbot-network
 
   # Ollama LLM Service (CPU)
+  # Run with: docker compose --profile default up
+  # or: docker compose --profile cpu up
   ollama:
     image: ollama/ollama:latest
     container_name: chatbot-ollama
@@ -37,11 +39,11 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      test: ["CMD-SHELL", "ollama list || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 10
+      start_period: 120s
     networks:
       - chatbot-network
     profiles:
@@ -69,17 +71,18 @@ services:
               count: all
               capabilities: [gpu]
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      test: ["CMD-SHELL", "ollama list || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 10
+      start_period: 120s
     networks:
       - chatbot-network
     profiles:
       - nvidia
 
   # Ollama with AMD GPU Support (ROCm)
+  # Requires: AMD ROCm drivers installed on host (https://rocm.docs.amd.com/projects/install-on-linux/en/latest/)
   # Run with: docker compose --profile amd up
   ollama-amd:
     image: ollama/ollama:rocm
@@ -95,30 +98,23 @@ services:
       - /dev/kfd
       - /dev/dri
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      test: ["CMD-SHELL", "ollama list || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 10
+      start_period: 120s
     networks:
       - chatbot-network
     profiles:
       - amd
 
-  # Model Puller - Auto-pulls the development model on startup
+  # Model Puller for CPU/default profile
   model-puller:
     image: curlimages/curl:latest
     container_name: chatbot-model-puller
     depends_on:
       ollama:
         condition: service_healthy
-        required: false
-      ollama-nvidia:
-        condition: service_healthy
-        required: false
-      ollama-amd:
-        condition: service_healthy
-        required: false
     entrypoint: >
       sh -c "
         echo 'Waiting for Ollama to be ready...' &&
@@ -131,9 +127,47 @@ services:
       - chatbot-network
     profiles:
       - cpu
-      - nvidia
-      - amd
       - default
+
+  # Model Puller for NVIDIA profile
+  model-puller-nvidia:
+    image: curlimages/curl:latest
+    container_name: chatbot-model-puller
+    depends_on:
+      ollama-nvidia:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        echo 'Waiting for Ollama to be ready...' &&
+        sleep 5 &&
+        echo 'Pulling development model: ${OLLAMA_MODEL:-llama3.2:3b}...' &&
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"${OLLAMA_MODEL:-llama3.2:3b}\"}' &&
+        echo 'Model pull initiated successfully'
+      "
+    networks:
+      - chatbot-network
+    profiles:
+      - nvidia
+
+  # Model Puller for AMD profile
+  model-puller-amd:
+    image: curlimages/curl:latest
+    container_name: chatbot-model-puller
+    depends_on:
+      ollama-amd:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        echo 'Waiting for Ollama to be ready...' &&
+        sleep 5 &&
+        echo 'Pulling development model: ${OLLAMA_MODEL:-llama3.2:3b}...' &&
+        curl -X POST http://ollama:11434/api/pull -d '{\"name\": \"${OLLAMA_MODEL:-llama3.2:3b}\"}' &&
+        echo 'Model pull initiated successfully'
+      "
+    networks:
+      - chatbot-network
+    profiles:
+      - amd
 
   # FastAPI Backend
   backend:

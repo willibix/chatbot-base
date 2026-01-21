@@ -9,6 +9,7 @@ FastAPI REST API backend for the Chatbot application with JWT authentication, ch
 ### With Docker (Recommended)
 
 ```bash
+# Make sure to create your .env from the .env.exemple beforehand
 # From project root
 docker compose --profile default up -d
 
@@ -17,6 +18,8 @@ docker compose exec backend alembic upgrade head
 ```
 
 ### Without Docker
+
+You will still need to run the postgresql and ollama container
 
 ```bash
 cd backend
@@ -29,7 +32,8 @@ source .venv/bin/activate  # Linux/macOS
 # Install dependencies
 pip install -e ".[dev]"
 
-# Set environment variables (or use .env file)
+# You will still need to run the postgresql and ollama container
+# Set environment variables (or create your .env file from the .env.exemple)
 export DATABASE_URL="postgresql+psycopg://chatbot:chatbot_dev_password@localhost:5432/chatbot"
 export OLLAMA_BASE_URL="http://localhost:11434"
 

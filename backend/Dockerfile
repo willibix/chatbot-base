@@ -16,9 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e .
+# Copy dependency files
+COPY pyproject.toml README.md ./
+
+# Install dependencies globally (not editable) so they survive volume mount
+RUN pip install --no-cache-dir .
 
 # Copy application code
 COPY . .

@@ -28,6 +28,8 @@ services:
   # For production, configure GPU support as needed
   ollama:
     image: ollama/ollama:latest
+    # For AMD GPU support, switch image to:
+    # image: ollama/ollama:rocm
     container_name: chatbot-ollama
     restart: always
     volumes:
@@ -42,12 +44,16 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+    # For AMD GPU support, uncomment:
+    # devices:
+    #   - /dev/kfd
+    #   - /dev/dri
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 10
+      start_period: 1200s
     networks:
       - chatbot-network
     # Do not expose ports in production - use internal network

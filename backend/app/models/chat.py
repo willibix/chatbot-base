@@ -1,11 +1,14 @@
 """Chat models."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
+import sqlalchemy as sa
+from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
+
 
 if TYPE_CHECKING:
     from app.models.user import User
@@ -32,8 +35,8 @@ class ChatSession(ChatSessionBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="users.id", index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
     user: "User" = Relationship(back_populates="chat_sessions")
@@ -65,17 +68,23 @@ class MessageBase(SQLModel):
     """Base message model."""
 
     content: str
-    role: MessageRole
 
 
-class Message(MessageBase, table=True):
+class Message(SQLModel, table=True):
     """Message database model."""
 
     __tablename__ = "messages"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     chat_session_id: UUID = Field(foreign_key="chat_sessions.id", index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    content: str
+    role: MessageRole = Field(
+        sa_column=sa.Column(
+            SAEnum("user", "assistant", "system", name="messagerole", create_constraint=False),
+            nullable=False,
+        )
+    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Relationships
     chat_session: ChatSession = Relationship(back_populates="messages")
@@ -87,11 +96,13 @@ class MessageCreate(SQLModel):
     content: str
 
 
-class MessageRead(MessageBase):
+class MessageRead(SQLModel):
     """Schema for reading a message."""
 
     id: UUID
     chat_session_id: UUID
+    content: str
+    role: MessageRole
     created_at: datetime
 
 

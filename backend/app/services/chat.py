@@ -1,6 +1,6 @@
 """Chat service."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlmodel import Session, select
@@ -88,7 +88,7 @@ class ChatService:
         statement = select(ChatSession).where(ChatSession.id == session_id)
         chat_session = self.session.exec(statement).first()
         if chat_session:
-            chat_session.updated_at = datetime.now(timezone.utc)
+            chat_session.updated_at = datetime.now(UTC)
             self.session.add(chat_session)
 
         self.session.commit()
