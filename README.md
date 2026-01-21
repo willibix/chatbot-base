@@ -1,6 +1,6 @@
 # Chatbot Application
 
-A cross-platform chatbot application with a FastAPI backend and Tauri + React frontend. Features JWT authentication, chat session management, and AI-powered responses using LangChain and Ollama with Llama models.
+A cross-platform chatbot application with a FastAPI backend and Tauri + React frontend. Features JWT authentication, chat session management, and AI-powered responses using LangChain and Ollama with any model supported (ollama.com/library).
 
 ## Architecture
 
@@ -35,7 +35,7 @@ chatbot-base/
 
 ### Backend Development (Optional)
 
-- **Python 3.12+** - If running backend outside Docker
+- **Python 3.14+** - If running backend outside Docker
 - **Ruff** - Python linter/formatter (`pip install ruff`)
 
 ### Frontend Development
@@ -327,14 +327,21 @@ For production, use larger Llama models. After starting Ollama:
 ./scripts/pull-model.sh llama4-scout
 ```
 
-Available production models:
-- `llama4-scout` - Llama 4 Scout (17B x 16 experts, ~109B total)
-- `llama4-maverick` - Llama 4 Maverick (17B x 128 experts, ~400B total)
-- `llama3.3:70b` - Llama 3.3 70B
+# Model selection
+# Development: llama3.2:3b (lightweight, ~2GB)
+# 
+
+Some available production models:
+- codellama:34b (for coding tasks, ~16GB total)
+- llama4:16x17b (17B x 16 experts, ~109GB total)
+- llama4:128x17b (17B x 128 experts, ~400GB total)
+- llama3.3:70b (powerful, smaller than Llama 4, ~43GB total)
+
+For all models list: https://ollama.com/library
 
 Update your `.env` after pulling:
 ```env
-OLLAMA_MODEL=llama4-scout
+OLLAMA_MODEL=llama4:16x17b
 ```
 
 ## Production Deployment
@@ -406,4 +413,4 @@ OLLAMA_MODEL=llama4-scout
 
 ## License
 
-MIT
+Apache 2.0
