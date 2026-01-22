@@ -247,7 +247,7 @@ npm run build:tauri
 
 # Lint
 npm run lint
-npm run lint:fix
+npm run lint:check
 
 # Format
 npm run format

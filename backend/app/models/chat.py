@@ -31,7 +31,7 @@ class ChatSessionBase(SQLModel):
 class ChatSession(ChatSessionBase, table=True):
     """Chat session database model."""
 
-    __tablename__ = "chat_sessions"
+    __tablename__ = "chat_sessions"  # type: ignore[assignment]
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="users.id", index=True)
@@ -73,7 +73,7 @@ class MessageBase(SQLModel):
 class Message(SQLModel, table=True):
     """Message database model."""
 
-    __tablename__ = "messages"
+    __tablename__ = "messages"  # type: ignore[assignment]
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     chat_session_id: UUID = Field(foreign_key="chat_sessions.id", index=True)

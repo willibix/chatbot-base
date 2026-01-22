@@ -13,8 +13,8 @@
         "build:tauri": "tauri build",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
-        "format": "prettier --write \"**.{ts,tsx,css,json}\"",
-        "format:check": "prettier --check \"**.{ts,tsx,css,json}\"",
+        "format": "prettier --write \"**.{ts,tsx,css,json,mjs}\"",
+        "format:check": "prettier --check \"**.{ts,tsx,css,json,mjs}\"",
         "preview": "vite preview",
         "tauri": "tauri",
         "android:init": "tauri android init",
@@ -36,7 +36,8 @@
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
         "react-redux": "^9.2.0",
-        "react-router-dom": "^7.12.0"
+        "react-router-dom": "^7.12.0",
+        "sharp": "^0.34.5"
     },
     "devDependencies": {
         "@eslint/compat": "^2.0.1",

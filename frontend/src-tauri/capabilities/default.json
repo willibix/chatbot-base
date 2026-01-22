@@ -1,6 +1,25 @@
 {
-    "identifier": "migrated",
-    "description": "Permissions migrated from v1",
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "default",
+    "description": "Default capability for the main window",
     "windows": ["main"],
-    "permissions": ["core:default", "http:default", "shell:allow-open"]
+    "permissions": [
+        "core:default",
+        "shell:allow-open",
+        "http:default",
+        {
+            "identifier": "http:allow-fetch",
+            "allow": [
+                {
+                    "url": "http://localhost:*/*"
+                },
+                {
+                    "url": "http://127.0.0.1:*/*"
+                },
+                {
+                    "url": "https://*"
+                }
+            ]
+        }
+    ]
 }

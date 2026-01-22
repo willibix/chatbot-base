@@ -23,7 +23,7 @@ class UserBase(SQLModel):
 class User(UserBase, table=True):
     """User database model."""
 
-    __tablename__ = "users"
+    __tablename__ = "users"  # type: ignore[assignment]
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     hashed_password: str = Field(max_length=255)
