@@ -262,10 +262,12 @@ const ChatPage = () => {
                 ))}
             </List>
             <Divider />
-            <ListItemButton onClick={handleLogout}>
-                <LogoutIcon sx={{ mr: 1 }} />
-                <ListItemText primary="Logout" />
-            </ListItemButton>
+            <Box sx={{ flexShrink: 0, marginY: 1 }}>
+                <ListItemButton onClick={handleLogout}>
+                    <LogoutIcon sx={{ mr: 1 }} />
+                    <ListItemText primary="Logout" />
+                </ListItemButton>
+            </Box>
         </Box>
     );
 
