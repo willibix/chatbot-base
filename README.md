@@ -405,7 +405,7 @@ OLLAMA_MODEL=llama4:16x17b
 - **React 19** - UI library
 - **Vite 6** - Build tool
 - **TypeScript** - Type safety
-- **MUI (Material-UI) v6** - Component library
+- **MUI (Material-UI) v7** - Component library
 - **Redux Toolkit** - State management
 - **React Router v7** - Routing
 - **ESLint** - Linting (Airbnb rules)
