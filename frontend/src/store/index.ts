@@ -1,20 +1,20 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore } from "@reduxjs/toolkit";
 
-import authReducer from './slices/authSlice';
-import chatReducer from './slices/chatSlice';
+import authReducer from "./slices/authSlice";
+import chatReducer from "./slices/chatSlice";
 
 export const store = configureStore({
-  reducer: {
-    auth: authReducer,
-    chat: chatReducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore these action types
-        ignoredActions: ['chat/addMessage'],
-      },
-    }),
+    reducer: {
+        auth: authReducer,
+        chat: chatReducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            serializableCheck: {
+                // Ignore these action types
+                ignoredActions: ["chat/addMessage"],
+            },
+        }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

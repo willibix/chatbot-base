@@ -1,10 +1,6 @@
 {
-  "identifier": "migrated",
-  "description": "Permissions migrated from v1",
-  "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "http:default",
-    "shell:allow-open"
-  ]
+    "identifier": "migrated",
+    "description": "Permissions migrated from v1",
+    "windows": ["main"],
+    "permissions": ["core:default", "http:default", "shell:allow-open"]
 }
