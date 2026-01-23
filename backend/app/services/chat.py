@@ -23,11 +23,11 @@ class ChatService:
         self.llm_service = LLMService()
 
     def get_user_sessions(self, user_id: UUID) -> list[ChatSession]:
-        """Get all chat sessions for a user."""
+        """Get all chat sessions for a user, sorted by creation date (newest first)."""
         statement = (
             select(ChatSession)
             .where(ChatSession.user_id == user_id)
-            .order_by(ChatSession.updated_at.desc())  # type: ignore[union-attr]
+            .order_by(ChatSession.created_at.desc())  # type: ignore[union-attr]
         )
         return list(self.session.exec(statement).all())
 

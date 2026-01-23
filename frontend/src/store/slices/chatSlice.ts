@@ -25,6 +25,7 @@ interface ChatState {
     messages: Message[];
     isLoading: boolean;
     isSending: boolean;
+    sendingSessionId: string | null;
     error: string | null;
 }
 
@@ -34,6 +35,7 @@ const initialState: ChatState = {
     messages: [],
     isLoading: false,
     isSending: false,
+    sendingSessionId: null,
     error: null,
 };
 
@@ -44,8 +46,9 @@ const chatSlice = createSlice({
         setLoading: (state, action: PayloadAction<boolean>) => {
             state.isLoading = action.payload;
         },
-        setSending: (state, action: PayloadAction<boolean>) => {
-            state.isSending = action.payload;
+        setSending: (state, action: PayloadAction<{ sending: boolean; sessionId?: string | null }>) => {
+            state.isSending = action.payload.sending;
+            state.sendingSessionId = action.payload.sending ? (action.payload.sessionId ?? null) : null;
         },
         setError: (state, action: PayloadAction<string | null>) => {
             state.error = action.payload;
@@ -71,7 +74,10 @@ const chatSlice = createSlice({
             state.messages = action.payload;
         },
         addMessage: (state, action: PayloadAction<Message>) => {
-            state.messages.push(action.payload);
+            // Only add to displayed messages if it belongs to the current session
+            if (state.currentSession?.id === action.payload.chatSessionId) {
+                state.messages.push(action.payload);
+            }
         },
         clearChat: (state) => {
             state.currentSession = null;

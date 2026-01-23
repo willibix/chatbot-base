@@ -8,7 +8,12 @@ import SendIcon from "@mui/icons-material/Send";
 import AppBar from "@mui/material/AppBar";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
@@ -22,8 +27,9 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { useNotification } from "../components/NotificationContext";
+import OverflowTooltip from "../components/OverflowTooltip";
 import { useAppDispatch, useAppSelector } from "../hooks/useStore";
-import { useNotification } from "../contexts/NotificationContext";
 import {
     createChatSession,
     deleteChatSession,
@@ -49,17 +55,38 @@ const drawerWidth = 280;
 const ChatPage = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [messageInput, setMessageInput] = useState("");
+    const [newChatDialogOpen, setNewChatDialogOpen] = useState(false);
+    const [newChatTitle, setNewChatTitle] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messageInputRef = useRef<HTMLInputElement>(null);
+    const prevIsSendingRef = useRef(false);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { sessionId } = useParams<{ sessionId: string }>();
     const { notifyError } = useNotification();
 
-    const { sessions, currentSession, messages, isLoading, isSending } = useAppSelector((state) => state.chat);
+    const { sessions, currentSession, messages, isLoading, isSending, sendingSessionId } = useAppSelector(
+        (state) => state.chat,
+    );
 
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, []);
+
+    // Focus message input when sending transitions from true to false
+    useEffect(() => {
+        if (prevIsSendingRef.current && !isSending && currentSession) {
+            messageInputRef.current?.focus();
+        }
+        prevIsSendingRef.current = isSending;
+    }, [isSending, currentSession]);
+
+    // Focus message input when session changes and input is enabled
+    useEffect(() => {
+        if (currentSession && !isSending) {
+            messageInputRef.current?.focus();
+        }
+    }, [currentSession?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         scrollToBottom();
@@ -129,9 +156,21 @@ const ChatPage = () => {
         void loadSession();
     }, [sessionId, dispatch, notifyError]);
 
-    const handleNewChat = async () => {
+    const handleOpenNewChatDialog = () => {
+        setNewChatTitle("");
+        setNewChatDialogOpen(true);
+    };
+
+    const handleCloseNewChatDialog = () => {
+        setNewChatDialogOpen(false);
+        setNewChatTitle("");
+    };
+
+    const handleCreateNewChat = async () => {
+        const title = newChatTitle.trim() || "New Chat";
+        handleCloseNewChatDialog();
         try {
-            const session = await createChatSession();
+            const session = await createChatSession(title);
             const newSession: ChatSession = {
                 id: session.id,
                 userId: session.user_id,
@@ -175,7 +214,7 @@ const ChatPage = () => {
         };
         dispatch(addMessage(userMessage));
 
-        dispatch(setSending(true));
+        dispatch(setSending({ sending: true, sessionId: currentSession.id }));
         try {
             const response = await apiSendMessage(currentSession.id, content);
             dispatch(
@@ -200,7 +239,7 @@ const ChatPage = () => {
                 }),
             );
         } finally {
-            dispatch(setSending(false));
+            dispatch(setSending({ sending: false }));
         }
     };
 
@@ -219,7 +258,7 @@ const ChatPage = () => {
             <Divider />
             <Box sx={{ p: 1 }}>
                 <ListItemButton
-                    onClick={handleNewChat}
+                    onClick={handleOpenNewChatDialog}
                     sx={{
                         borderRadius: 1,
                         border: "1px dashed",
@@ -250,13 +289,19 @@ const ChatPage = () => {
                         <ListItemButton
                             onClick={async () => navigate(`/chat/${session.id}`)}
                             selected={sessionId === session.id}
+                            sx={{ pr: sendingSessionId === session.id ? 7 : 5 }}
                         >
-                            <ListItemText
-                                primary={session.title ?? "New Chat"}
-                                primaryTypographyProps={{
-                                    noWrap: true,
-                                }}
-                            />
+                            <OverflowTooltip title={session.title ?? "New Chat"}>
+                                <ListItemText
+                                    primary={session.title ?? "New Chat"}
+                                    primaryTypographyProps={{
+                                        noWrap: true,
+                                    }}
+                                />
+                            </OverflowTooltip>
+                            {sendingSessionId === session.id ? (
+                                <CircularProgress size={16} sx={{ ml: 1, flexShrink: 0 }} />
+                            ) : null}
                         </ListItemButton>
                     </ListItem>
                 ))}
@@ -290,9 +335,16 @@ const ChatPage = () => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography noWrap component="div" variant="h6">
-                        {currentSession?.title ?? "Select or start a chat"}
-                    </Typography>
+                    <OverflowTooltip title={currentSession?.title ?? ""}>
+                        <Typography
+                            noWrap
+                            component="div"
+                            sx={{ overflow: "hidden", textOverflow: "ellipsis" }}
+                            variant="h6"
+                        >
+                            {currentSession?.title ?? "Select or start a chat"}
+                        </Typography>
+                    </OverflowTooltip>
                 </Toolbar>
             </AppBar>
             <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
@@ -386,7 +438,7 @@ const ChatPage = () => {
                                     </Paper>
                                 </Box>
                             ))}
-                            {isSending ? (
+                            {isSending && sendingSessionId === currentSession.id ? (
                                 <Box sx={{ display: "flex", gap: 1 }}>
                                     <Avatar sx={{ bgcolor: "primary.main", width: 32, height: 32 }}>AI</Avatar>
                                     <Paper sx={{ p: 2 }}>
@@ -403,9 +455,11 @@ const ChatPage = () => {
                     <Box sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
                         <Box sx={{ display: "flex", gap: 1 }}>
                             <TextField
+                                autoFocus
                                 fullWidth
                                 multiline
                                 disabled={isSending}
+                                inputRef={messageInputRef}
                                 maxRows={4}
                                 onChange={(e) => setMessageInput(e.target.value)}
                                 placeholder="Type your message..."
@@ -417,17 +471,52 @@ const ChatPage = () => {
                                     }
                                 }}
                             />
-                            <IconButton
-                                color="primary"
-                                disabled={!messageInput.trim() || isSending}
-                                onClick={handleSendMessage}
-                            >
-                                <SendIcon />
-                            </IconButton>
+                            {isSending ? (
+                                <IconButton disabled color="primary">
+                                    <CircularProgress size={24} />
+                                </IconButton>
+                            ) : (
+                                <IconButton color="primary" disabled={!messageInput.trim()} onClick={handleSendMessage}>
+                                    <SendIcon />
+                                </IconButton>
+                            )}
                         </Box>
                     </Box>
                 ) : null}
             </Box>
+            <Dialog
+                disableRestoreFocus
+                fullWidth
+                maxWidth="sm"
+                onClose={handleCloseNewChatDialog}
+                open={newChatDialogOpen}
+            >
+                <DialogTitle>New Chat</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        label="Chat Name"
+                        margin="dense"
+                        onChange={(e) => setNewChatTitle(e.target.value)}
+                        placeholder="New Chat"
+                        slotProps={{ htmlInput: { maxLength: 255 } }}
+                        value={newChatTitle}
+                        variant="outlined"
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                void handleCreateNewChat();
+                            }
+                        }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseNewChatDialog}>Cancel</Button>
+                    <Button onClick={handleCreateNewChat} variant="contained">
+                        Create
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

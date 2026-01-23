@@ -3,7 +3,7 @@ import GlobalStyles from "@mui/material/GlobalStyles";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { NotificationProvider } from "./contexts/NotificationContext";
+import { NotificationProvider } from "./components/NotificationContext";
 import { useAppSelector } from "./hooks/useStore";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";

@@ -40,7 +40,10 @@ class ChatSession(ChatSessionBase, table=True):
 
     # Relationships
     user: "User" = Relationship(back_populates="chat_sessions")
-    messages: list["Message"] = Relationship(back_populates="chat_session")
+    messages: list["Message"] = Relationship(
+        back_populates="chat_session",
+        sa_relationship_kwargs={"order_by": "Message.created_at.asc()"},
+    )
 
 
 class ChatSessionCreate(SQLModel):
