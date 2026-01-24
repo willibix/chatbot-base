@@ -96,6 +96,48 @@ Create `.env` in the frontend folder:
 VITE_API_URL=http://localhost:8000/api/v1
 ```
 
+For mobile development (Android/iOS), set this to your machine's local IP address so the app can reach the backend:
+
+```env
+VITE_API_URL=http://192.168.x.x:8000/api/v1
+```
+
+## Tauri Setup Scripts
+
+The `scripts/` folder contains utilities required for Tauri to work properly:
+
+### generate-icons.mjs
+
+Generates all required icon sizes for desktop and mobile platforms from a source image.
+
+```bash
+# Usage: Place a high-resolution icon (1024x1024 recommended) at src-tauri/icons/icon.png
+node scripts/generate-icons.mjs
+```
+
+This creates icons for Windows (.ico), macOS (.icns), Linux, Android, and iOS.
+
+### update-capabilities.mjs
+
+**Automatically run** before `android:dev`, `android:build`, `ios:dev`, and `ios:build` commands.
+
+This script reads `VITE_API_URL` from `.env` and updates the Tauri HTTP capabilities (`src-tauri/capabilities/default.json`) to allow network requests to that URL. This is necessary because:
+
+- Tauri's HTTP plugin requires explicit URL allowlisting for security
+- The capabilities JSON file cannot read environment variables directly
+- Mobile apps need to reach the backend via your machine's IP (not `localhost`)
+
+```bash
+# Manual run (usually not needed - runs automatically)
+npm run update-capabilities
+```
+
+**Workflow for mobile development:**
+
+1. Set your machine's IP in `.env`: `VITE_API_URL=http://192.168.x.x:8000/api/v1`
+2. Run `npm run android:dev` (or `ios:dev`) - capabilities are updated automatically
+3. If your IP changes, just update `.env` and restart
+
 ## Building for Production
 
 ### Web

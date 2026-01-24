@@ -17,12 +17,13 @@
         "format:check": "prettier --check \"**.{ts,tsx,css,json,mjs}\"",
         "preview": "vite preview",
         "tauri": "tauri",
+        "update-capabilities": "node scripts/update-capabilities.mjs",
         "android:init": "tauri android init",
-        "android:dev": "tauri android dev",
-        "android:build": "tauri android build",
+        "android:dev": "npm run update-capabilities && tauri android dev",
+        "android:build": "npm run update-capabilities && tauri android build",
         "ios:init": "tauri ios init",
-        "ios:dev": "tauri ios dev",
-        "ios:build": "tauri ios build"
+        "ios:dev": "npm run update-capabilities && tauri ios dev",
+        "ios:build": "npm run update-capabilities && tauri ios build"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",

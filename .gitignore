@@ -5,6 +5,7 @@ node_modules/
 dist/
 frontend/dist/
 frontend/src-tauri/target/
+frontend/src-tauri/gen/
 
 # Backend Python
 backend/__pycache__/

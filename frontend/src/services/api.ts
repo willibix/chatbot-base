@@ -1,4 +1,13 @@
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
+
+// Detect if running inside Tauri (desktop/mobile) vs browser
+// Check for __TAURI_INTERNALS__ which is set by Tauri runtime
+const isTauri = typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
+// Use Tauri fetch for desktop/mobile, browser fetch for web
+const httpFetch = isTauri ? tauriFetch : fetch;
 
 interface ApiError {
     detail: string;
@@ -16,7 +25,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promi
         (headers as Record<string, string>).Authorization = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await httpFetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers,
     });
@@ -25,7 +34,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promi
     if (response.status === 401) {
         const refreshToken = localStorage.getItem("refreshToken");
         if (refreshToken) {
-            const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            const refreshResponse = await httpFetch(`${API_BASE_URL}/auth/refresh`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ refresh_token: refreshToken }),
@@ -41,7 +50,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promi
 
                 // Retry the original request
                 (headers as Record<string, string>).Authorization = `Bearer ${tokens.access_token}`;
-                return fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+                return httpFetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
             }
         }
 
@@ -55,7 +64,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promi
 
 // Auth API
 export async function login(username: string, password: string) {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await httpFetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -74,7 +83,7 @@ export async function login(username: string, password: string) {
 }
 
 export async function register(email: string, username: string, password: string) {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await httpFetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, username, password }),

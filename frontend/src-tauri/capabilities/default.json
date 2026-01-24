@@ -2,7 +2,9 @@
     "$schema": "../gen/schemas/desktop-schema.json",
     "identifier": "default",
     "description": "Default capability for the main window",
-    "windows": ["main"],
+    "windows": [
+        "main"
+    ],
     "permissions": [
         "core:default",
         "shell:allow-open",
@@ -11,10 +13,28 @@
             "identifier": "http:allow-fetch",
             "allow": [
                 {
-                    "url": "http://localhost:*/*"
+                    "url": "http://localhost"
                 },
                 {
-                    "url": "http://127.0.0.1:*/*"
+                    "url": "http://localhost:*"
+                },
+                {
+                    "url": "http://127.0.0.1"
+                },
+                {
+                    "url": "http://127.0.0.1:*"
+                },
+                {
+                    "url": "http://10.0.2.2"
+                },
+                {
+                    "url": "http://10.0.2.2:*"
+                },
+                {
+                    "url": "http://192.168.2.118:8000"
+                },
+                {
+                    "url": "http://192.168.2.118:*"
                 },
                 {
                     "url": "https://*"
