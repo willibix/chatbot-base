@@ -169,6 +169,7 @@ const ChatPage = () => {
     const handleCreateNewChat = async () => {
         const title = newChatTitle.trim() || "New Chat";
         handleCloseNewChatDialog();
+        setMobileOpen(false); // Close drawer on mobile
         try {
             const session = await createChatSession(title);
             const newSession: ChatSession = {
@@ -196,6 +197,11 @@ const ChatPage = () => {
         } catch {
             notifyError("Failed to delete session");
         }
+    };
+
+    const handleSelectSession = (id: string) => {
+        setMobileOpen(false); // Close drawer on mobile
+        navigate(`/chat/${id}`);
     };
 
     const handleSendMessage = async () => {
@@ -249,7 +255,9 @@ const ChatPage = () => {
     };
 
     const drawer = (
-        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <Box
+            sx={{ display: "flex", flexDirection: "column", height: "100%", paddingTop: "var(--safe-area-inset-top)" }}
+        >
             <Toolbar>
                 <Typography noWrap component="div" variant="h6">
                     Chatbot
@@ -287,7 +295,7 @@ const ChatPage = () => {
                         }
                     >
                         <ListItemButton
-                            onClick={async () => navigate(`/chat/${session.id}`)}
+                            onClick={() => handleSelectSession(session.id)}
                             selected={sessionId === session.id}
                             sx={{ pr: sendingSessionId === session.id ? 7 : 5 }}
                         >
@@ -317,12 +325,13 @@ const ChatPage = () => {
     );
 
     return (
-        <Box sx={{ display: "flex", height: "100vh" }}>
+        <Box sx={{ display: "flex", height: "100vh", paddingTop: "var(--safe-area-inset-top)" }}>
             <AppBar
                 position="fixed"
                 sx={{
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     ml: { sm: `${drawerWidth}px` },
+                    top: "var(--safe-area-inset-top)",
                 }}
             >
                 <Toolbar>

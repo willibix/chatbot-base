@@ -71,7 +71,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <Container component="main" maxWidth="xs">
+        <Container component="main" maxWidth="xs" sx={{ paddingTop: "var(--safe-area-inset-top)" }}>
             <Box
                 sx={{
                     marginTop: 8,
