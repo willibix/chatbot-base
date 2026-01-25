@@ -13,6 +13,76 @@ interface ApiError {
     detail: string;
 }
 
+// Custom error class for session expiration
+export class SessionExpiredError extends Error {
+    constructor() {
+        super("Session expired");
+        this.name = "SessionExpiredError";
+    }
+}
+
+// Session expiration callback - will be set by the app to handle logout
+let onSessionExpired: (() => void) | null = null;
+
+/**
+ * Set a callback to be called when the session expires.
+ * This allows the UI to redirect to login.
+ */
+export function setSessionExpiredCallback(callback: () => void) {
+    onSessionExpired = callback;
+}
+
+/**
+ * Clear all session data from localStorage.
+ */
+function clearSession() {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+}
+
+/**
+ * Handle session expiration by clearing tokens and notifying the app.
+ */
+function handleSessionExpired() {
+    clearSession();
+    if (onSessionExpired) {
+        onSessionExpired();
+    }
+}
+
+/**
+ * Attempt to refresh the access token using the refresh token.
+ * Returns the new tokens if successful, null otherwise.
+ */
+async function tryRefreshToken(): Promise<{ access_token: string; refresh_token: string } | null> {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken) {
+        return null;
+    }
+
+    try {
+        const refreshResponse = await httpFetch(`${API_BASE_URL}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+
+        if (refreshResponse.ok) {
+            const tokens = (await refreshResponse.json()) as {
+                access_token: string;
+                refresh_token: string;
+            };
+            localStorage.setItem("accessToken", tokens.access_token);
+            localStorage.setItem("refreshToken", tokens.refresh_token);
+            return tokens;
+        }
+    } catch {
+        // Refresh failed
+    }
+
+    return null;
+}
+
 async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -32,31 +102,17 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promi
 
     // Handle token refresh if needed
     if (response.status === 401) {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (refreshToken) {
-            const refreshResponse = await httpFetch(`${API_BASE_URL}/auth/refresh`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ refresh_token: refreshToken }),
-            });
+        const tokens = await tryRefreshToken();
 
-            if (refreshResponse.ok) {
-                const tokens = (await refreshResponse.json()) as {
-                    access_token: string;
-                    refresh_token: string;
-                };
-                localStorage.setItem("accessToken", tokens.access_token);
-                localStorage.setItem("refreshToken", tokens.refresh_token);
-
-                // Retry the original request
-                (headers as Record<string, string>).Authorization = `Bearer ${tokens.access_token}`;
-                return httpFetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
-            }
+        if (tokens) {
+            // Retry the original request with new token
+            (headers as Record<string, string>).Authorization = `Bearer ${tokens.access_token}`;
+            return httpFetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
         }
 
-        // Clear tokens if refresh fails
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        // Session has expired - notify the app and throw to prevent error messages
+        handleSessionExpired();
+        throw new SessionExpiredError();
     }
 
     return response;

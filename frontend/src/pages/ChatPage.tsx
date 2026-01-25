@@ -36,6 +36,7 @@ import {
     getChatSession,
     getChatSessions,
     sendMessage as apiSendMessage,
+    SessionExpiredError,
 } from "../services/api";
 import { logout } from "../store/slices/authSlice";
 import {
@@ -109,8 +110,11 @@ const ChatPage = () => {
                         })),
                     ),
                 );
-            } catch {
-                notifyError("Failed to load sessions");
+            } catch (err) {
+                // Don't show error for session expiration - the app will redirect
+                if (!(err instanceof SessionExpiredError)) {
+                    notifyError("Failed to load sessions");
+                }
             } finally {
                 dispatch(setLoading(false));
             }
@@ -146,8 +150,11 @@ const ChatPage = () => {
                         })),
                     }),
                 );
-            } catch {
-                notifyError("Failed to load session");
+            } catch (err) {
+                // Don't show error for session expiration - the app will redirect
+                if (!(err instanceof SessionExpiredError)) {
+                    notifyError("Failed to load session");
+                }
             } finally {
                 dispatch(setLoading(false));
             }
@@ -181,8 +188,10 @@ const ChatPage = () => {
             };
             dispatch(addSession(newSession));
             navigate(`/chat/${session.id}`);
-        } catch {
-            notifyError("Failed to create session");
+        } catch (err) {
+            if (!(err instanceof SessionExpiredError)) {
+                notifyError("Failed to create session");
+            }
         }
     };
 
@@ -194,8 +203,10 @@ const ChatPage = () => {
             if (sessionId === id) {
                 navigate("/chat");
             }
-        } catch {
-            notifyError("Failed to delete session");
+        } catch (err) {
+            if (!(err instanceof SessionExpiredError)) {
+                notifyError("Failed to delete session");
+            }
         }
     };
 
@@ -232,18 +243,21 @@ const ChatPage = () => {
                     createdAt: response.created_at,
                 }),
             );
-        } catch {
-            notifyError("Failed to send message");
-            // Add error message
-            dispatch(
-                addMessage({
-                    id: crypto.randomUUID(),
-                    chatSessionId: currentSession.id,
-                    content: "Failed to send message. Please try again.",
-                    role: "assistant",
-                    createdAt: new Date().toISOString(),
-                }),
-            );
+        } catch (err) {
+            // Don't show error for session expiration - the app will redirect
+            if (!(err instanceof SessionExpiredError)) {
+                notifyError("Failed to send message");
+                // Add error message
+                dispatch(
+                    addMessage({
+                        id: crypto.randomUUID(),
+                        chatSessionId: currentSession.id,
+                        content: "Failed to send message. Please try again.",
+                        role: "assistant",
+                        createdAt: new Date().toISOString(),
+                    }),
+                );
+            }
         } finally {
             dispatch(setSending({ sending: false }));
         }

@@ -6,10 +6,12 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { NotificationProvider } from "./components/NotificationContext";
-import { useAppSelector } from "./hooks/useStore";
+import { useAppDispatch, useAppSelector } from "./hooks/useStore";
 import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import { setSessionExpiredCallback } from "./services/api";
+import { sessionExpired } from "./store/slices/authSlice";
 
 // Detect if running in Tauri
 const isTauri = typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
@@ -93,8 +95,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }): React.Reac
     return children;
 };
 
+// Hook to set up session expiration handling
+const useSessionExpiredHandler = () => {
+    const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        // Set up the callback that api.ts will call when session expires
+        setSessionExpiredCallback(() => {
+            dispatch(sessionExpired());
+        });
+    }, [dispatch]);
+};
+
 const App = () => {
     useAndroidSafeArea();
+    useSessionExpiredHandler();
 
     return (
         <ThemeProvider theme={theme}>

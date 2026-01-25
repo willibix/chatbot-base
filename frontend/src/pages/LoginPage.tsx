@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Alert from "@mui/material/Alert";
@@ -13,14 +13,21 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../hooks/useStore";
 import { getCurrentUser, login } from "../services/api";
-import { setCredentials, setError, setLoading } from "../store/slices/authSlice";
+import { clearSessionExpiredFlag, setCredentials, setError, setLoading } from "../store/slices/authSlice";
 
 const LoginPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { isLoading, error } = useAppSelector((state) => state.auth);
+    const { isLoading, error, sessionExpired: isSessionExpired } = useAppSelector((state) => state.auth);
+
+    // Clear session expired flag when user starts typing
+    useEffect(() => {
+        if (isSessionExpired && (username || password)) {
+            dispatch(clearSessionExpiredFlag());
+        }
+    }, [username, password, isSessionExpired, dispatch]);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -71,6 +78,11 @@ const LoginPage = () => {
                     Sign in
                 </Typography>
                 <Box noValidate component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                    {isSessionExpired ? (
+                        <Alert severity="warning" sx={{ mb: 2 }}>
+                            Your session has expired. Please sign in again.
+                        </Alert>
+                    ) : null}
                     {error ? (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {error}

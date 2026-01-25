@@ -15,6 +15,7 @@ interface AuthState {
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
+    sessionExpired: boolean; // Flag to show session expired message
 }
 
 const initialState: AuthState = {
@@ -24,6 +25,7 @@ const initialState: AuthState = {
     isAuthenticated: !!localStorage.getItem("accessToken"),
     isLoading: false,
     error: null,
+    sessionExpired: false,
 };
 
 const authSlice = createSlice({
@@ -50,6 +52,7 @@ const authSlice = createSlice({
             state.refreshToken = refreshToken;
             state.isAuthenticated = true;
             state.error = null;
+            state.sessionExpired = false;
             localStorage.setItem("accessToken", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
         },
@@ -64,6 +67,7 @@ const authSlice = createSlice({
             state.accessToken = accessToken;
             state.refreshToken = refreshToken;
             state.isAuthenticated = true;
+            state.sessionExpired = false;
             localStorage.setItem("accessToken", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
         },
@@ -73,11 +77,26 @@ const authSlice = createSlice({
             state.refreshToken = null;
             state.isAuthenticated = false;
             state.error = null;
+            state.sessionExpired = false;
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
+        },
+        sessionExpired: (state) => {
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+            state.isAuthenticated = false;
+            state.error = null;
+            state.sessionExpired = true;
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+        },
+        clearSessionExpiredFlag: (state) => {
+            state.sessionExpired = false;
         },
     },
 });
 
-export const { setLoading, setError, setCredentials, setTokens, logout } = authSlice.actions;
+export const { setLoading, setError, setCredentials, setTokens, logout, sessionExpired, clearSessionExpiredFlag } =
+    authSlice.actions;
 export default authSlice.reducer;

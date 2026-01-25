@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
 from sqlmodel import Session
 
 from app.api.deps import get_current_user
@@ -21,6 +22,12 @@ class TokenResponse:
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.token_type = token_type
+
+
+class RefreshTokenRequest(BaseModel):
+    """Request body for token refresh."""
+
+    refresh_token: str
 
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
@@ -75,17 +82,23 @@ async def login(
 
 @router.post("/refresh")
 async def refresh_token(
-    refresh_token: str,
+    request: RefreshTokenRequest,
     session: Annotated[Session, Depends(get_session)],
 ) -> dict:
-    """Refresh access token using refresh token."""
+    """Refresh access token using refresh token.
+
+    Session constraints:
+    - Access token expires in 1 minute
+    - Session closes if not refreshed within 5 minutes of last refresh
+    - Maximum total session duration is 20 minutes
+    """
     auth_service = AuthService(session)
-    tokens = auth_service.refresh_tokens(refresh_token)
+    tokens = auth_service.refresh_tokens(request.refresh_token)
 
     if not tokens:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
+            detail="Invalid refresh token or session expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

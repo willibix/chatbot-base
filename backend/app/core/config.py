@@ -43,8 +43,9 @@ class Settings(BaseSettings):
     # JWT Authentication
     JWT_SECRET_KEY: str = "dev-secret-key-change-in-production"
     JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 240  # Access token expires in 4 hours
+    JWT_REFRESH_INACTIVITY_TIMEOUT_MINUTES: int = 1440  # Session closes if no refresh in 24 hours
+    JWT_MAX_SESSION_DURATION_MINUTES: int = 43200  # Maximum total session duration (30 days)
 
     # Ollama / LLM
     OLLAMA_BASE_URL: str = "http://localhost:11434"
