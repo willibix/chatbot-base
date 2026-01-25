@@ -16,11 +16,13 @@ chatbot-base/
 │   ├── alembic/          # Database migrations
 │   └── tests/            # Backend tests
 ├── frontend/             # Tauri + React + Vite
+│   ├── scripts/          # Frontend utility scripts
 │   ├── src/
 │   │   ├── pages/        # React pages
 │   │   ├── store/        # Redux store & slices
 │   │   ├── services/     # API client
-│   │   └── hooks/        # Custom React hooks
+│   │   ├── hooks/        # Custom React hooks
+│   │   └── components/   # Custom React components
 │   └── src-tauri/        # Tauri Rust backend
 ├── scripts/              # Utility scripts
 └── docker-compose.yml    # Docker development stack
