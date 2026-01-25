@@ -134,7 +134,7 @@ npm run update-capabilities
 
 **Workflow for mobile development:**
 
-1. Set your machine's IP in `.env`: `VITE_API_URL=http://192.168.x.x:8000/api/v1`
+1. Set your machine's IP in `.env`: `VITE_API_URL=http://192.168.x.x:8000/api/v1` and `CORS_ORIGINS=["http://192.168.2.118:1420",...`
 2. Run `npm run android:dev` (or `ios:dev`) - capabilities are updated automatically
 3. If your IP changes, just update `.env` and restart
 
