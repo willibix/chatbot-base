@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import AddIcon from "@mui/icons-material/Add";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
 import SendIcon from "@mui/icons-material/Send";
@@ -48,6 +50,7 @@ import {
     setSending,
     setSessions,
 } from "../store/slices/chatSlice";
+import { toggleTheme } from "../store/slices/themeSlice";
 
 import type { ChatSession, Message } from "../store/slices/chatSlice";
 
@@ -69,6 +72,7 @@ const ChatPage = () => {
     const { sessions, currentSession, messages, isLoading, isSending, sendingSessionId } = useAppSelector(
         (state) => state.chat,
     );
+    const themeMode = useAppSelector((state) => state.theme.mode);
 
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -269,9 +273,7 @@ const ChatPage = () => {
     };
 
     const drawer = (
-        <Box
-            sx={{ display: "flex", flexDirection: "column", height: "100%", paddingTop: "var(--safe-area-inset-top)" }}
-        >
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
             <Toolbar>
                 <Typography noWrap component="div" variant="h6">
                     Chatbot
@@ -330,6 +332,10 @@ const ChatPage = () => {
             </List>
             <Divider />
             <Box sx={{ flexShrink: 0, marginY: 1 }}>
+                <ListItemButton onClick={() => dispatch(toggleTheme())}>
+                    {themeMode === "dark" ? <LightModeIcon sx={{ mr: 1 }} /> : <DarkModeIcon sx={{ mr: 1 }} />}
+                    <ListItemText primary={themeMode === "dark" ? "Light Mode" : "Dark Mode"} />
+                </ListItemButton>
                 <ListItemButton onClick={handleLogout}>
                     <LogoutIcon sx={{ mr: 1 }} />
                     <ListItemText primary="Logout" />
@@ -378,7 +384,13 @@ const ChatPage = () => {
                     variant="temporary"
                     sx={{
                         display: { xs: "block", sm: "none" },
-                        "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+                        "& .MuiDrawer-paper": {
+                            boxSizing: "border-box",
+                            width: drawerWidth,
+                            // Position drawer below the safe area (status bar)
+                            top: "var(--safe-area-inset-top)",
+                            height: "calc(100% - var(--safe-area-inset-top))",
+                        },
                     }}
                 >
                     {drawer}
@@ -388,7 +400,12 @@ const ChatPage = () => {
                     variant="permanent"
                     sx={{
                         display: { xs: "none", sm: "block" },
-                        "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
+                        "& .MuiDrawer-paper": {
+                            boxSizing: "border-box",
+                            width: drawerWidth,
+                            top: "var(--safe-area-inset-top)",
+                            height: "calc(100% - var(--safe-area-inset-top))",
+                        },
                     }}
                 >
                     {drawer}

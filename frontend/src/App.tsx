@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import CssBaseline from "@mui/material/CssBaseline";
 import GlobalStyles from "@mui/material/GlobalStyles";
@@ -16,24 +16,26 @@ import { sessionExpired } from "./store/slices/authSlice";
 // Detect if running in Tauri
 const isTauri = typeof window !== "undefined" && ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
 
-const theme = createTheme({
-    palette: {
-        mode: "dark",
-        primary: {
-            main: "#90caf9",
+// Create theme based on mode
+const createAppTheme = (mode: "light" | "dark") =>
+    createTheme({
+        palette: {
+            mode,
+            primary: {
+                main: mode === "dark" ? "#90caf9" : "#1976d2",
+            },
+            secondary: {
+                main: mode === "dark" ? "#f48fb1" : "#dc004e",
+            },
+            background: {
+                default: mode === "dark" ? "#121212" : "#f5f5f5",
+                paper: mode === "dark" ? "#1e1e1e" : "#ffffff",
+            },
         },
-        secondary: {
-            main: "#f48fb1",
+        typography: {
+            fontFamily: "Roboto, Arial, sans-serif",
         },
-        background: {
-            default: "#121212",
-            paper: "#1e1e1e",
-        },
-    },
-    typography: {
-        fontFamily: "Roboto, Arial, sans-serif",
-    },
-});
+    });
 
 const globalStyles = (
     <GlobalStyles
@@ -78,8 +80,8 @@ const useAndroidSafeArea = () => {
 
             // If the safe area is 0, apply Android fallback
             if (computedTop === "0px" || computedTop === "0") {
-                // Use a sensible default for Android status bar height (28px works for most devices)
-                document.documentElement.style.setProperty("--safe-area-inset-top", "28px");
+                // Use a sensible default for Android status bar height (24px is standard at 1x density)
+                document.documentElement.style.setProperty("--safe-area-inset-top", "24px");
             }
         }
     }, []);
@@ -108,6 +110,9 @@ const useSessionExpiredHandler = () => {
 };
 
 const App = () => {
+    const themeMode = useAppSelector((state) => state.theme.mode);
+    const theme = useMemo(() => createAppTheme(themeMode), [themeMode]);
+
     useAndroidSafeArea();
     useSessionExpiredHandler();
 
