@@ -471,7 +471,12 @@ const ChatPage = () => {
                                         sx={{
                                             p: 2,
                                             maxWidth: "70%",
-                                            bgcolor: message.role === "user" ? "primary.dark" : "background.paper",
+                                            bgcolor:
+                                                message.role === "user"
+                                                    ? themeMode === "dark"
+                                                        ? "primary.dark"
+                                                        : "primary.light"
+                                                    : "background.paper",
                                         }}
                                     >
                                         <Typography sx={{ whiteSpace: "pre-wrap" }}>{message.content}</Typography>
