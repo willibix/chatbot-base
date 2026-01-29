@@ -7,6 +7,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
     plugins: [react()],
 
+    // Read .env from root directory (parent of frontend)
+    envDir: resolve(__dirname, ".."),
+
     // Path aliases matching tsconfig.json
     resolve: {
         alias: {
