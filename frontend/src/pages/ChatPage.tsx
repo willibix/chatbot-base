@@ -56,6 +56,24 @@ import type { ChatSession, Message } from "../store/slices/chatSlice";
 
 const drawerWidth = 280;
 
+// Fallback UUID generator for environments where crypto.randomUUID is not available
+const generateUUID = (): string => {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    // Fallback using crypto.getRandomValues without bitwise operations
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    // Set version 4 and variant bits using array mapping
+    const uuidBytes = Array.from(bytes, (b, i) => {
+        if (i === 6) return (b % 16) + 64; // Version 4: 0100xxxx
+        if (i === 8) return (b % 64) + 128; // Variant: 10xxxxxx
+        return b;
+    });
+
+    const hex = uuidBytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+};
+
 const ChatPage = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [messageInput, setMessageInput] = useState("");
@@ -220,19 +238,22 @@ const ChatPage = () => {
     };
 
     const handleSendMessage = async () => {
-        if (!messageInput.trim() || !currentSession || isSending) return;
+        if (!messageInput.trim() || !currentSession || isSending) {
+            return;
+        }
 
         const content = messageInput.trim();
         setMessageInput("");
 
         // Add user message optimistically
         const userMessage: Message = {
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             chatSessionId: currentSession.id,
             content,
             role: "user",
             createdAt: new Date().toISOString(),
         };
+
         dispatch(addMessage(userMessage));
 
         dispatch(setSending({ sending: true, sessionId: currentSession.id }));
@@ -254,7 +275,7 @@ const ChatPage = () => {
                 // Add error message
                 dispatch(
                     addMessage({
-                        id: crypto.randomUUID(),
+                        id: generateUUID(),
                         chatSessionId: currentSession.id,
                         content: "Failed to send message. Please try again.",
                         role: "assistant",

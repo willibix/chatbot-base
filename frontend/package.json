@@ -13,6 +13,7 @@
         "build:tauri": "tauri build",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
+        "typecheck": "tsc --noEmit",
         "format": "prettier --write \"**.{ts,tsx,css,json,mjs}\"",
         "format:check": "prettier --check \"**.{ts,tsx,css,json,mjs}\"",
         "preview": "vite preview",

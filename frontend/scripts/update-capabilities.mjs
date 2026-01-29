@@ -12,13 +12,31 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = dirname(currentFilePath);
 
 const frontendDir = join(currentDirPath, "..");
-const envPath = join(frontendDir, ".env");
+const rootDir = join(frontendDir, "..");
 const capabilitiesPath = join(frontendDir, "src-tauri", "capabilities", "default.json");
+
+// Find .env file - check root first, then frontend folder
+function findEnvPath() {
+    const rootEnvPath = join(rootDir, ".env");
+    const frontendEnvPath = join(frontendDir, ".env");
+
+    if (existsSync(rootEnvPath)) {
+        console.log(`[update-capabilities] Using root .env: ${rootEnvPath}`);
+        return rootEnvPath;
+    }
+    if (existsSync(frontendEnvPath)) {
+        console.log(`[update-capabilities] Using frontend .env: ${frontendEnvPath}`);
+        return frontendEnvPath;
+    }
+    return null;
+}
 
 // Read .env file and extract VITE_API_URL
 function getApiUrlFromEnv() {
-    if (!existsSync(envPath)) {
-        console.log("No .env file found, using default localhost");
+    const envPath = findEnvPath();
+
+    if (!envPath) {
+        console.log("[update-capabilities] No .env file found, using default localhost");
         return "http://localhost:8000";
     }
 
@@ -31,7 +49,7 @@ function getApiUrlFromEnv() {
         return `${url.protocol}//${url.host}`;
     }
 
-    console.log("VITE_API_URL not found in .env, using default localhost");
+    console.log("[update-capabilities] VITE_API_URL not found in .env, using default localhost");
     return "http://localhost:8000";
 }
 
