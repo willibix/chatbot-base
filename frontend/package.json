@@ -8,9 +8,9 @@
     },
     "scripts": {
         "dev": "vite",
-        "dev:tauri": "tauri dev",
+        "dev:tauri": "npm run update-capabilities && tauri dev",
         "build": "tsc -b && vite build",
-        "build:tauri": "tauri build",
+        "build:tauri": "npm run update-capabilities && tauri build",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
         "typecheck": "tsc --noEmit",
