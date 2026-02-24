@@ -1,9 +1,13 @@
 """Chat service."""
 
 from datetime import UTC, datetime
-from uuid import UUID
+from typing import TYPE_CHECKING
 
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
+
+
+if TYPE_CHECKING:
+    from uuid import UUID
 
 from app.models.chat import (
     ChatSession,
@@ -25,9 +29,7 @@ class ChatService:
     def get_user_sessions(self, user_id: UUID) -> list[ChatSession]:
         """Get all chat sessions for a user, sorted by creation date (newest first)."""
         statement = (
-            select(ChatSession)
-            .where(ChatSession.user_id == user_id)
-            .order_by(ChatSession.created_at.desc())  # type: ignore[union-attr]
+            select(ChatSession).where(ChatSession.user_id == user_id).order_by(col(ChatSession.created_at).desc())
         )
         return list(self.session.exec(statement).all())
 
@@ -68,11 +70,7 @@ class ChatService:
 
     def get_session_messages(self, session_id: UUID) -> list[Message]:
         """Get all messages for a chat session."""
-        statement = (
-            select(Message)
-            .where(Message.chat_session_id == session_id)
-            .order_by(Message.created_at.asc())  # type: ignore[union-attr]
-        )
+        statement = select(Message).where(Message.chat_session_id == session_id).order_by(col(Message.created_at).asc())
         return list(self.session.exec(statement).all())
 
     def add_message(self, session_id: UUID, content: str, role: MessageRole) -> Message:

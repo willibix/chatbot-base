@@ -22,12 +22,6 @@ backend/.coverage
 .env.local
 .env.*.local
 
-# Editor directories
-.vscode/
-.idea/
-*.swp
-*.swo
-
 # OS files
 .DS_Store
 Thumbs.db

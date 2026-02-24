@@ -1,6 +1,6 @@
 """Database session management."""
 
-from collections.abc import Generator
+from collections.abc import Generator  # noqa: TC003 - FastAPI evaluates return annotations at runtime for Depends()
 
 from sqlmodel import Session, create_engine
 
@@ -14,7 +14,7 @@ engine = create_engine(
 )
 
 
-def get_session() -> Generator[Session, None, None]:
+def get_session() -> Generator[Session]:
     """Get a database session."""
     with Session(engine) as session:
         yield session

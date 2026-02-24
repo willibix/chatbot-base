@@ -21,13 +21,9 @@ class LLMService:
             "If you don't know something, say so honestly."
         )
 
-    def _convert_messages(
-        self, history: list[Message]
-    ) -> list[SystemMessage | HumanMessage | AIMessage]:
+    def _convert_messages(self, history: list[Message]) -> list[SystemMessage | HumanMessage | AIMessage]:
         """Convert database messages to LangChain message format."""
-        messages: list[SystemMessage | HumanMessage | AIMessage] = [
-            SystemMessage(content=self.system_prompt)
-        ]
+        messages: list[SystemMessage | HumanMessage | AIMessage] = [SystemMessage(content=self.system_prompt)]
 
         for msg in history:
             if msg.role == MessageRole.USER:

@@ -40,10 +40,7 @@ def create_access_token(
     now = datetime.now(UTC)
     now_ts = now.timestamp()
 
-    if expires_delta:
-        expire = now + expires_delta
-    else:
-        expire = now + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = now + expires_delta if expires_delta else now + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update(
         {

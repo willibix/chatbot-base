@@ -1,0 +1,20 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "chatbot-dev",
+            "database": "chatbot",
+            "username": "chatbot",
+            "password": "chatbot_dev_password"
+        }
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "pyrefly.configFile": "${workspaceFolder}/backend/pyrefly.toml",
+    "[python]": {
+        "editor.defaultFormatter": "meta.pyrefly"
+    }
+}

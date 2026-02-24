@@ -1,6 +1,6 @@
 [project]
 name = "chatbot-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = "Chatbot API with FastAPI, LangChain, and Ollama"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -8,28 +8,29 @@ license = { text = "MIT" }
 authors = [{ name = "Developer", email = "dev@example.com" }]
 
 dependencies = [
-    "fastapi>=0.115.0",
-    "uvicorn[standard]>=0.32.0",
-    "sqlmodel>=0.0.22",
-    "alembic>=1.14.0",
-    "psycopg[binary]>=3.2.0",
-    "asyncpg>=0.30.0",
-    "langchain>=0.3.0",
-    "langchain-ollama>=0.2.0",
-    "langchain-core>=0.3.0",
-    "python-jose[cryptography]>=3.3.0",
-    "bcrypt>=4.2.0",
-    "pydantic-settings>=2.6.0",
-    "python-multipart>=0.0.12",
-    "email-validator>=2.1.0",
+    "fastapi>=0.133.0",
+    "uvicorn[standard]>=0.41.0",
+    "sqlmodel>=0.0.37",
+    "alembic>=1.18.4",
+    "psycopg[binary]>=3.3.3",
+    "asyncpg>=0.31.0",
+    "langchain>=1.2.10",
+    "langchain-ollama>=1.0.1",
+    "langchain-core>=1.2.15",
+    "python-jose[cryptography]>=3.5.0",
+    "bcrypt>=5.0.0",
+    "pydantic-settings>=2.13.1",
+    "python-multipart>=0.0.22",
+    "email-validator>=2.3.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.8.0",
-    "pytest>=8.3.0",
-    "pytest-asyncio>=0.24.0",
-    "httpx>=0.28.0",
+    "ruff>=0.15.2",
+    "pyrefly>=0.54.0",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "httpx>=0.28.1",
 ]
 
 [build-system]
@@ -42,9 +43,9 @@ packages = ["app"]
 # Ruff Configuration - Flake8 + Black equivalent
 [tool.ruff]
 # Same as Black
-line-length = 100
+line-length = 120
 indent-width = 4
-target-version = "py312"
+target-version = "py314"
 
 # Source directories for import sorting
 src = ["app"]
@@ -115,9 +116,20 @@ known-first-party = ["app"]
 force-single-line = false
 lines-after-imports = 2
 
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
-"alembic/*" = ["ARG001"]  # Alembic migrations have unused arguments
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-decorators = [
+    "fastapi.APIRouter.get",
+    "fastapi.APIRouter.post",
+    "fastapi.APIRouter.put",
+    "fastapi.APIRouter.patch",
+    "fastapi.APIRouter.delete",
+    "fastapi.APIRouter.head",
+    "fastapi.APIRouter.options",
+]
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "sqlmodel.SQLModel",
+]
 
 [tool.ruff.format]
 # Black-compatible formatting

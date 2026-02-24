@@ -20,9 +20,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # CORS
-    CORS_ORIGINS: list[str] = Field(
-        default=["http://localhost:5173", "http://localhost:1420", "tauri://localhost"]
-    )
+    CORS_ORIGINS: list[str] = Field(default=["http://localhost:5173", "http://localhost:1420", "tauri://localhost"])
 
     # Database
     POSTGRES_HOST: str = "localhost"
@@ -31,7 +29,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "chatbot_dev_password"
     POSTGRES_DB: str = "chatbot"
 
-    @computed_field  # type: ignore[prop-decorator]
+    @computed_field
     @property
     def DATABASE_URL(self) -> str:
         """Construct database URL from components."""

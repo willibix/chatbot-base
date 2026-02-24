@@ -1,0 +1,10 @@
+# Pyrefly type checker configuration
+# https://docs.pyrefly.org/en/latest/configuration/
+
+project_includes = ["app", "tests"]
+project_excludes = ["alembic/versions", ".venv"]
+
+python_version = "3.14"
+
+# Search paths for imports
+search_path = ["."]

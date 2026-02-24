@@ -1,7 +1,7 @@
 """Chat models."""
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class MessageRole(str, Enum):
+class MessageRole(StrEnum):
     """Message role enum."""
 
     USER = "user"
@@ -31,7 +31,7 @@ class ChatSessionBase(SQLModel):
 class ChatSession(ChatSessionBase, table=True):
     """Chat session database model."""
 
-    __tablename__ = "chat_sessions"  # type: ignore[assignment]
+    __tablename__ = "chat_sessions"  # type: ignore[bad-override]
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     user_id: UUID = Field(foreign_key="users.id", index=True)
@@ -64,7 +64,7 @@ class ChatSessionRead(ChatSessionBase):
 class ChatSessionWithMessages(ChatSessionRead):
     """Schema for reading a chat session with messages."""
 
-    messages: list["MessageRead"] = []
+    messages: list[MessageRead] = []
 
 
 class MessageBase(SQLModel):
@@ -76,7 +76,7 @@ class MessageBase(SQLModel):
 class Message(SQLModel, table=True):
     """Message database model."""
 
-    __tablename__ = "messages"  # type: ignore[assignment]
+    __tablename__ = "messages"  # type: ignore[bad-override]
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     chat_session_id: UUID = Field(foreign_key="chat_sessions.id", index=True)
