@@ -439,7 +439,7 @@ const ChatPage = () => {
                     display: "flex",
                     flexDirection: "column",
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    height: "100vh",
+                    height: "100%",
                 }}
             >
                 <Toolbar />
