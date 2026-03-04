@@ -6,7 +6,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
 import MenuIcon from "@mui/icons-material/Menu";
+import MicIcon from "@mui/icons-material/Mic";
 import SendIcon from "@mui/icons-material/Send";
+import StopIcon from "@mui/icons-material/Stop";
 import AppBar from "@mui/material/AppBar";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -24,6 +26,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
+import Snackbar from "@mui/material/Snackbar";
 import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -32,6 +35,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useNotification } from "../components/NotificationContext";
 import OverflowTooltip from "../components/OverflowTooltip";
 import { useAppDispatch, useAppSelector } from "../hooks/useStore";
+import useVoiceRecorder from "../hooks/useVoiceRecorder";
 import {
     createChatSession,
     deleteChatSession,
@@ -39,6 +43,7 @@ import {
     getChatSessions,
     sendMessage as apiSendMessage,
     SessionExpiredError,
+    transcribeAudio,
 } from "../services/api";
 import { logout } from "../store/slices/authSlice";
 import {
@@ -79,6 +84,7 @@ const ChatPage = () => {
     const [messageInput, setMessageInput] = useState("");
     const [newChatDialogOpen, setNewChatDialogOpen] = useState(false);
     const [newChatTitle, setNewChatTitle] = useState("");
+    const [isTranscribing, setIsTranscribing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messageInputRef = useRef<HTMLInputElement>(null);
     const prevIsSendingRef = useRef(false);
@@ -91,6 +97,8 @@ const ChatPage = () => {
         (state) => state.chat,
     );
     const themeMode = useAppSelector((state) => state.theme.mode);
+
+    const { startRecording, stopRecording, isRecording, recordingDuration, permissionDenied } = useVoiceRecorder();
 
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -291,6 +299,56 @@ const ChatPage = () => {
     const handleLogout = () => {
         dispatch(logout());
         navigate("/login");
+    };
+
+    const handleStartRecording = async () => {
+        try {
+            await startRecording();
+        } catch {
+            notifyError("Failed to start recording");
+        }
+    };
+
+    const handleStopRecording = async () => {
+        try {
+            const audioBlob = await stopRecording();
+            setIsTranscribing(true);
+
+            try {
+                const response = await transcribeAudio(audioBlob);
+                const transcribedText = response.text.trim();
+
+                if (!transcribedText) {
+                    notifyError("Could not transcribe audio. Please try again.");
+                    return;
+                }
+
+                // Append to existing text with two newlines, or set directly if empty
+                setMessageInput((prev) => {
+                    if (prev.trim()) {
+                        return `${prev}\n\n${transcribedText}`;
+                    }
+                    return transcribedText;
+                });
+            } catch (err) {
+                if (!(err instanceof SessionExpiredError)) {
+                    notifyError("Failed to transcribe audio");
+                }
+            } finally {
+                setIsTranscribing(false);
+                // Focus the input after transcription
+                messageInputRef.current?.focus();
+            }
+        } catch {
+            notifyError("Failed to stop recording");
+        }
+    };
+
+    // Format recording duration as M:SS
+    const formatDuration = (seconds: number): string => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
     };
 
     const drawer = (
@@ -519,16 +577,46 @@ const ChatPage = () => {
                 {/* Message input */}
                 {currentSession ? (
                     <Box sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
+                        {/* Transcribing indicator */}
+                        {isTranscribing ? (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                                <CircularProgress size={16} />
+                                <Typography color="text.secondary" variant="caption">
+                                    Transcribing audio...
+                                </Typography>
+                            </Box>
+                        ) : null}
+                        {/* Recording indicator */}
+                        {isRecording ? (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                                <Box
+                                    sx={{
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: "50%",
+                                        bgcolor: "error.main",
+                                        animation: "pulse 1.5s ease-in-out infinite",
+                                        "@keyframes pulse": {
+                                            "0%": { opacity: 1 },
+                                            "50%": { opacity: 0.3 },
+                                            "100%": { opacity: 1 },
+                                        },
+                                    }}
+                                />
+                                <Typography color="error" variant="caption">
+                                    Recording {formatDuration(recordingDuration)}
+                                </Typography>
+                            </Box>
+                        ) : null}
                         <Box sx={{ display: "flex", gap: 1 }}>
                             <TextField
                                 autoFocus
                                 fullWidth
                                 multiline
-                                disabled={isSending}
+                                disabled={isSending || isRecording || isTranscribing}
                                 inputRef={messageInputRef}
                                 maxRows={4}
                                 onChange={(e) => setMessageInput(e.target.value)}
-                                placeholder="Type your message..."
                                 value={messageInput}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" && !e.shiftKey) {
@@ -536,13 +624,55 @@ const ChatPage = () => {
                                         void handleSendMessage();
                                     }
                                 }}
+                                placeholder={
+                                    isRecording
+                                        ? "Recording..."
+                                        : isTranscribing
+                                          ? "Transcribing..."
+                                          : "Type your message..."
+                                }
                             />
+                            {/* Mic button */}
+                            {isRecording ? (
+                                <IconButton
+                                    color="error"
+                                    disabled={isTranscribing}
+                                    onClick={() => {
+                                        handleStopRecording();
+                                    }}
+                                    sx={{
+                                        animation: "pulse 1.5s ease-in-out infinite",
+                                        "@keyframes pulse": {
+                                            "0%": { opacity: 1 },
+                                            "50%": { opacity: 0.6 },
+                                            "100%": { opacity: 1 },
+                                        },
+                                    }}
+                                >
+                                    <StopIcon />
+                                </IconButton>
+                            ) : (
+                                <IconButton
+                                    color="primary"
+                                    disabled={isSending || isTranscribing}
+                                    onClick={() => {
+                                        handleStartRecording();
+                                    }}
+                                >
+                                    <MicIcon />
+                                </IconButton>
+                            )}
+                            {/* Send button */}
                             {isSending ? (
                                 <IconButton disabled color="primary">
                                     <CircularProgress size={24} />
                                 </IconButton>
                             ) : (
-                                <IconButton color="primary" disabled={!messageInput.trim()} onClick={handleSendMessage}>
+                                <IconButton
+                                    color="primary"
+                                    disabled={!messageInput.trim() || isRecording || isTranscribing}
+                                    onClick={handleSendMessage}
+                                >
                                     <SendIcon />
                                 </IconButton>
                             )}
@@ -583,6 +713,14 @@ const ChatPage = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+            <Snackbar
+                autoHideDuration={5000}
+                message="Microphone access was denied. Please allow microphone access in your browser settings."
+                open={permissionDenied}
+                onClose={() => {
+                    // Permission denied state resets on next startRecording attempt
+                }}
+            />
         </Box>
     );
 };

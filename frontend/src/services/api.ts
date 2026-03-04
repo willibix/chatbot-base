@@ -86,13 +86,26 @@ async function tryRefreshToken(): Promise<{ access_token: string; refresh_token:
 async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promise<Response> {
     const accessToken = localStorage.getItem("accessToken");
 
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-        ...options.headers,
+    const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
+    const headers: Record<string, string> = {
+        // Don't set Content-Type for FormData — the browser sets it with the correct boundary
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
     };
 
+    // Merge caller-provided headers
+    if (options.headers) {
+        const incoming =
+            options.headers instanceof Headers
+                ? Object.fromEntries(options.headers.entries())
+                : Array.isArray(options.headers)
+                  ? Object.fromEntries(options.headers)
+                  : options.headers;
+        Object.assign(headers, incoming);
+    }
+
     if (accessToken) {
-        (headers as Record<string, string>).Authorization = `Bearer ${accessToken}`;
+        headers.Authorization = `Bearer ${accessToken}`;
     }
 
     const response = await httpFetch(`${API_BASE_URL}${endpoint}`, {
@@ -106,7 +119,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promi
 
         if (tokens) {
             // Retry the original request with new token
-            (headers as Record<string, string>).Authorization = `Bearer ${tokens.access_token}`;
+            headers.Authorization = `Bearer ${tokens.access_token}`;
             return httpFetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
         }
 
@@ -261,4 +274,20 @@ export async function sendMessage(sessionId: string, content: string) {
         role: "user" | "assistant" | "system";
         created_at: string;
     }>;
+}
+
+export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string }> {
+    const formData = new FormData();
+    formData.append("audio_file", audioBlob, "recording.webm");
+
+    const response = await fetchWithAuth("/chat/transcribe", {
+        method: "POST",
+        body: formData,
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to transcribe audio");
+    }
+
+    return response.json() as Promise<{ text: string }>;
 }

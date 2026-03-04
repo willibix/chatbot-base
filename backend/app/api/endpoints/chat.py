@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlmodel import Session
 
 from app.api.deps import get_current_user
@@ -15,9 +15,11 @@ from app.models.chat import (
     ChatSessionWithMessages,
     MessageCreate,
     MessageRead,
+    TranscriptionResponse,
 )
 from app.models.user import User
 from app.services.chat import ChatService
+from app.services.transcription import transcribe
 
 
 router = APIRouter()
@@ -101,3 +103,37 @@ async def send_message(
     # Process message and get AI response
     response = await chat_service.process_message(session_id, message_data.content)
     return response
+
+
+@router.post("/transcribe", response_model=TranscriptionResponse)
+async def transcribe_audio(
+    audio_file: UploadFile,
+    _current_user: Annotated[User, Depends(get_current_user)],
+) -> TranscriptionResponse:
+    """Transcribe an audio file to text using Whisper."""
+    # Validate MIME type
+    content_type = audio_file.content_type or ""
+    if not content_type.startswith("audio/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid file type: {content_type}. Expected an audio file.",
+        )
+
+    # Read audio bytes
+    audio_bytes = await audio_file.read()
+    if not audio_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Empty audio file.",
+        )
+
+    # Transcribe
+    try:
+        text = await transcribe(audio_bytes)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Transcription failed: {e!s}",
+        ) from e
+
+    return TranscriptionResponse(text=text)

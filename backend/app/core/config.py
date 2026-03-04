@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     OLLAMA_MODEL_PROD: str = "llama4-scout"
     OLLAMA_MODEL: str = Field(default="llama3.2:3b")  # Override via env
 
+    # Whisper (voice transcription)
+    WHISPER_MODEL: str = "base"  # tiny | base | small | medium | large
+
     # Environment
     ENVIRONMENT: str = "development"  # development | staging | production
 

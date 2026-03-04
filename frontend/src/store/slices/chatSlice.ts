@@ -79,6 +79,12 @@ const chatSlice = createSlice({
                 state.messages.push(action.payload);
             }
         },
+        updateMessageContent: (state, action: PayloadAction<{ id: string; content: string }>) => {
+            const message = state.messages.find((m) => m.id === action.payload.id);
+            if (message) {
+                message.content = action.payload.content;
+            }
+        },
         clearChat: (state) => {
             state.currentSession = null;
             state.messages = [];
@@ -96,6 +102,7 @@ export const {
     removeSession,
     setMessages,
     addMessage,
+    updateMessageContent,
     clearChat,
 } = chatSlice.actions;
 

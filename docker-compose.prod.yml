@@ -83,6 +83,7 @@ services:
       - JWT_REFRESH_TOKEN_EXPIRE_DAYS=${JWT_REFRESH_TOKEN_EXPIRE_DAYS:-7}
       - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama4-scout}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
       - ENVIRONMENT=production
       - CORS_ORIGINS=${CORS_ORIGINS}
     ports:

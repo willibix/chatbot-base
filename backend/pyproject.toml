@@ -22,6 +22,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "python-multipart>=0.0.22",
     "email-validator>=2.3.0",
+    "openai-whisper>=20250625",
 ]
 
 [project.optional-dependencies]

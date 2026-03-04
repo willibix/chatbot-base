@@ -109,5 +109,11 @@ class MessageRead(SQLModel):
     created_at: datetime
 
 
+class TranscriptionResponse(SQLModel):
+    """Schema for voice transcription response."""
+
+    text: str
+
+
 # Update forward references
 ChatSessionWithMessages.model_rebuild()

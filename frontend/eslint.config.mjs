@@ -79,8 +79,8 @@ const customRules = defineConfig([
     {
         name: "custom/rules",
         rules: {
-            // Use 4 spaces for indentation
-            "@stylistic/indent": ["error", 4],
+            // Disable indent rules — let Prettier handle indentation
+            "@stylistic/indent": "off",
             // JSX indentation
             "@stylistic/jsx-indent-props": ["error", 4],
 
@@ -103,10 +103,8 @@ const customRules = defineConfig([
             // Allow nested ternaries (useful in JSX)
             "no-nested-ternary": "off",
 
-            // Relax TypeScript strictness for better DX
+            // Allow explicit return types on module boundaries to reduce verbosity
             "@typescript-eslint/explicit-module-boundary-types": "off",
-            "@typescript-eslint/explicit-function-return-type": "off",
-            "@typescript-eslint/no-misused-spread": "off",
 
             // Import order is handled by Prettier/IDE
             "import-x/order": "off",
